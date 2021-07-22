@@ -34,9 +34,9 @@ const TRUE: i32 = 1;
 const FALSE: i32 = 0;
 const FULL: i32 = 2;
 
-const BIG: f64 = 1e10;
-const TINY: f64 = 1e-6;
-const MISSING: f64 = -1e10;     // Missing value indicator
+const BIG: f64 = 1.0e10;
+const TINY: f64 = 1.0e-6;
+const MISSING: f64 = -1.0e10;     // Missing value indicator
 const DIFFUS: f64 = 1.3e-8;     // Diffusivity of chlorine
                                 // @ 20 deg C (sq ft/sec)
 const VISCOS: f64 = 1.1e-5;     // Kinematic viscosity of water
