@@ -394,15 +394,15 @@ pub struct SField {
     RptLim: [f64;2]      // lower/upper report limits
 }
 
-#[derive(Debug, PartialEq, Eq, Hash,)]
+#[derive(Debug, PartialEq)]
 pub struct Sadjlist {
     pub node: i32,           // index of connecting node
     pub link: i32,           // index of connecting link
 }
 
-pub type Padjlist = Box<List<Sadjlist>>;
+pub type Padjlist = List<Sadjlist>;
 
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq)]
 pub struct Sseg {
     v: f64,             // segment volume
     c: f64,             // segment water quality
@@ -415,7 +415,7 @@ pub struct Sseg {
 // @FIXME: Notice the Sseg for prev pointer instead of next
 pub type Pseg = List<Sadjlist>;
 
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq)]
 pub struct Spremise {
     logop: i32,            // logical operator (IF, AND, OR)
     object: i32,           // NODE or LINK
@@ -426,7 +426,7 @@ pub struct Spremise {
     value: f64,            // variable's value
 }
 
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq)]
 pub struct Saction {
     link: i32,              // link index
     status: i32,            // link's status
@@ -441,13 +441,13 @@ pub struct Srule {
     ElseActions: List<Saction>     // list of ELSE actions
 }
 
-#[derive(Debug, PartialEq, Eq, Hash,)]
+#[derive(Debug, PartialEq)]
 pub struct SactionItem {
     ruleIndex: i32,           // index of rule action belongs to
     action: Option<Box<Saction>>,            // an action clause
 }
 
-pub type SactionList = List<SactionItem>
+pub type SactionList = List<SactionItem>;
 
 pub struct SmassBalance {
     initial: f64,         // initial mass in system
@@ -496,7 +496,7 @@ pub struct Parser {
     DefPat: i32,                // Default demand pattern
 
     PrevPat: Option<Box<Spattern>>,       // Previous pattern processed
-    PrevCurve: <Box<Scurve>>,     // Previous curve processed
+    PrevCurve: Option<Box<Scurve>>,     // Previous curve processed
     X: Option<Vec<f64>>,        // Temporary array for curve data
 }
 
@@ -584,7 +584,6 @@ pub struct Rules {
 
 // Sparse matrix wrapper
 pub struct Smatrix {
-    
     pub Aii: Option<Vec<f32>>,        // Diagonal matrix coeffs.
     pub Aij: Option<Vec<f32>>,        // Non-zero, off-diagonal matrix coeffs.
     pub F: Option<Vec<f32>>,          // Right hand side vector
@@ -727,6 +726,7 @@ pub struct Network {
     NodesHashMapTable: HashMap<String, String>,        // Hash Map for Node ID names
     LinkHashTable: HashMap<String, String>,        // Hash Map for Link ID names
     // @FIXME: should make sure that this
+    // make sure that this works fine
     pub Adjlist: Option<Box<Padjlist>>       // Node adjacency lists
 }
 
