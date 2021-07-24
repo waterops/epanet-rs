@@ -10,7 +10,10 @@
  Last Updated: 07/11/2020
  ******************************************************************************
 */
-
+#![allow(non_snake_case)]
+#![allow(non_camel_case_types)]
+#![allow(dead_code)]
+use crate::linked_list::List;
 use std::collections::HashMap;
 use std::fs::File;
 
@@ -64,7 +67,6 @@ enum NodeType {
     RESERVOIR, 
     TANK
 }
-
 
 enum LinkType {
     CVPIPE,        // pipe with check valve
@@ -227,7 +229,7 @@ enum HdrType {
     LINKHDR        // link results header
 }
 
-enum FlowDirection {
+pub enum FlowDirection {
     NEGATIVE  = -1,  // flow in reverse of pre-assigned direction
     ZERO_FLOW = 0,   // zero flow
     POSITIVE  = 1    // flow in pre-assigned direction
@@ -245,11 +247,11 @@ enum DemandModelType {
 ------------------------------------------------------
 */
 
-struct IDString {
+pub struct IDString {
     ID: String
 }
 
-struct Spattern             // Time Pattern Object
+pub struct Spattern             // Time Pattern Object
 {
   ID: String,             // pattern ID
   Comment: String,         // pattern comment
@@ -257,7 +259,7 @@ struct Spattern             // Time Pattern Object
   F: Option<Vec<f64>>           // pattern factors
 }
 
-struct Scurve {
+pub struct Scurve {
     ID: String,   // curve ID
     Comment: String,      // curve comment
     Type: CurveType,          // curve type
@@ -267,14 +269,14 @@ struct Scurve {
     Y: Option<Vec<f64>>            // y-values
 }
 
-struct Sdemand {
+pub struct Sdemand {
     Base: f64,             // baseline demand
     Pat: i32,              // pattern index
     Name: String,           // demand category name
     next: Option<Box<Sdemand>>    // next demand list item
 }
 
-struct Senergy {
+pub struct Senergy {
     TimeOnLine: f64,       // hours pump is online
     Efficiency: f64,       // total time wtd. efficiency
     KwHrsPerFlow: f64,     // total kw-hrs per unit of flow
@@ -285,21 +287,21 @@ struct Senergy {
     CurrentEffic: f64     // current pump efficiency
 }
 
-struct Ssource {
+pub struct Ssource {
     C0: f64,         // base concentration/mass
     Pat: i32,        // pattern index
     Smass: f64,      // actual mass flow rate
     Type: SourceType       // type of source
 }
 
-struct Svertices {
+pub struct Svertices {
     X: Box<f64>,               // array of x-coordinates
     Y: Box<f64>,               // array of y-coordinates
     Npts: i32,             // number of vertex points
     Capacity: i32         // capacity of coordinate arrays
 }
 
-struct Snode {
+pub struct Snode {
     ID: String,    // node ID
     X: f64,              // x-coordinate
     Y: f64,              // y-coordinate
@@ -314,7 +316,7 @@ struct Snode {
     Comment: String       // node comment
 }
 
-struct Slink {
+pub struct Slink {
     ID: String,    // link ID
     N1: i32,             // start node index
     N2: i32,             // end node index
@@ -334,7 +336,7 @@ struct Slink {
     Comment: String       // link comment
 }
 
-struct Stank {
+pub struct Stank {
     Node: i32,            // node index of tank
     A: f64,               // tank area
     Hmin: f64,            // minimum water elev
@@ -353,7 +355,7 @@ struct Stank {
     CanOverflow: i32     // tank can overflow or not
 }
 
-struct Spump {
+pub struct Spump {
     Link: i32,            // link index of pump
     Ptype: i32,           // pump curve type
     Q0: f64,              // initial flow
@@ -370,11 +372,11 @@ struct Spump {
     Energy: Senergy,          // energy usage statistics
 }
 
-struct Svalve {
+pub struct Svalve {
     Link: i32 //  link index of valve
 }
 
-struct Scontrol {
+pub struct Scontrol {
     Link: i32,      // link index
     Node: i32,      // control node index
     Time: u32,      // control time
@@ -384,7 +386,7 @@ struct Scontrol {
     Type: ControlType      // control type
 }
 
-struct SField {
+pub struct SField {
     Name: String,  // name of reported variable
     Units: String, // units of reported variable
     Enabled: i32,        // enabled if in table
@@ -392,19 +394,29 @@ struct SField {
     RptLim: [f64;2]      // lower/upper report limits
 }
 
-struct Sadjlist {
-    node: i32,           // index of connecting node
-    link: i32,           // index of connecting link
-    next: Option<Box<Sadjlist>> // next item in list
+#[derive(Debug, PartialEq, Eq, Hash,)]
+pub struct Sadjlist {
+    pub node: i32,           // index of connecting node
+    pub link: i32,           // index of connecting link
 }
 
-struct Sseg {
+pub type Padjlist = Box<List<Sadjlist>>;
+
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub struct Sseg {
     v: f64,             // segment volume
     c: f64,             // segment water quality
-    prev: Option<Box<Sseg>>    // previous segment in list
+    // @FIXME: need prev instead of next, so 
+    // List should be tweeked to provide the same
+    // Capability
+    // prev: Option<Box<Sseg>>    // previous segment in list
 }
 
-struct Spremise {
+// @FIXME: Notice the Sseg for prev pointer instead of next
+pub type Pseg = List<Sadjlist>;
+
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub struct Spremise {
     logop: i32,            // logical operator (IF, AND, OR)
     object: i32,           // NODE or LINK
     index: i32,            // object's index
@@ -412,31 +424,32 @@ struct Spremise {
     relop: i32,            // relational operator (=, >, <, etc.)
     status: i32,           // variable's status (OPEN, CLOSED)
     value: f64,            // variable's value
-    next: Option<Box<Spremise>>  // next premise clause
 }
 
-struct Saction {
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub struct Saction {
     link: i32,              // link index
     status: i32,            // link's status
     setting: f64,           // link's setting
-    next: Box<Saction>
 }
 
-struct Srule {
+pub struct Srule {
     label: String,   // rule label
     priority: f64,         // priority level
-    Premises: Box<Spremise>,        // list of premises
-    ThenActions: Box<Saction>,     // list of THEN actions
-    ElseActions: Box<Saction>     // list of ELSE actions
+    Premises: List<Spremise>,        // list of premises
+    ThenActions: List<Saction>,     // list of THEN actions
+    ElseActions: List<Saction>     // list of ELSE actions
 }
 
-struct SactionList {
+#[derive(Debug, PartialEq, Eq, Hash,)]
+pub struct SactionItem {
     ruleIndex: i32,           // index of rule action belongs to
-    action: Box<Saction>,            // an action clause
-    next: Option<Box<SactionList>>,  // next action on the list
+    action: Option<Box<Saction>>,            // an action clause
 }
 
-struct SmassBalance {
+pub type SactionList = List<SactionItem>
+
+pub struct SmassBalance {
     initial: f64,         // initial mass in system
     inflow: f64,          // mass inflow to system
     outflow: f64,         // mass outflow from system
@@ -452,7 +465,7 @@ struct SmassBalance {
 */
 
 // Input file parser wrapper
-struct Parser {
+pub struct Parser {
 
     InFile: Box<File>,            // Input file handle
 
@@ -482,15 +495,15 @@ struct Parser {
     Pressflag: i32,             // Pressure units flag
     DefPat: i32,                // Default demand pattern
 
-    PrevPat: Box<Spattern>,       // Previous pattern processed
-    PrevCurve: Box<Scurve>,     // Previous curve processed
+    PrevPat: Option<Box<Spattern>>,       // Previous pattern processed
+    PrevCurve: <Box<Scurve>>,     // Previous curve processed
     X: Option<Vec<f64>>,        // Temporary array for curve data
 }
 
 // Time step warpper
 // @TODO: rust provide richer api for time management
 // we might need to optimize this in future
-struct Times {  
+pub struct Times {  
     Tstart: f32,                // Starting time of day
     Hstep: f32,                 // Nominal hyd. time step
     Pstep: f32,                 // Time pattern time step
@@ -507,7 +520,7 @@ struct Times {
 }
 
 // Reporting warrper
-struct Report {
+pub struct Report {
 
     RptFile: Option<Box<File>>,           // Report file handle
     
@@ -535,7 +548,7 @@ struct Report {
     Field: [SField; FieldType::MAXVAR as usize] // Output reporting fields
 }
 
-struct Outfile {
+pub struct Outfile {
     
     HydFname: String,  // Hydraulics file name
     OutFname: String,  // Binary output file name
@@ -558,37 +571,38 @@ struct Outfile {
 }
 
 // Rule-Based Controls Wrapper
-struct Rules {
-    ActionList: Box<SactionList>,     // Linked list of action items
+pub struct Rules {
+    
+    ActionList: Option<Box<SactionList>>,     // Linked list of action items
     RuleState: i32,       // State of rule interpreter
     Errcode: i32,         // Rule parser error code
     Time1: f32,           // Start of rule evaluation time interval
-    LastPremise: Box<Spremise>,    // Previous premise clause
-    LastThenAction: Box<Saction>, // Previous THEN action
-    LastElseAction: Box<Saction>, // Previous ELSE action
+    LastPremise: Option<Box<Spremise>>,    // Previous premise clause
+    LastThenAction: Option<Box<Saction>>, // Previous THEN action
+    LastElseAction: Option<Box<Saction>>, // Previous ELSE action
 }
 
 // Sparse matrix wrapper
-struct Smatrix {
+pub struct Smatrix {
     
-    Aii: Option<Vec<f32>>,        // Diagonal matrix coeffs.
-    Aij: Option<Vec<f32>>,        // Non-zero, off-diagonal matrix coeffs.
-    F: Option<Vec<f32>>,          // Right hand side vector
-    temp: Option<Vec<f32>>,       // Array used by linear eqn. solver
+    pub Aii: Option<Vec<f32>>,        // Diagonal matrix coeffs.
+    pub Aij: Option<Vec<f32>>,        // Non-zero, off-diagonal matrix coeffs.
+    pub F: Option<Vec<f32>>,          // Right hand side vector
+    pub temp: Option<Vec<f32>>,       // Array used by linear eqn. solver
 
-    Ncoeffs: i32,    // Number of non-zero matrix coeffs
-    Order: Option<Vec<i32>>,      // Node-to-row of re-ordered matrix
-    Row: Option<Vec<i32>>,        // Row-to-node of re-ordered matrix
-    Ndx: Option<Vec<i32>>,        // Index of link's coeff. in Aij
-    XLNZ: Option<Vec<i32>>,       // Start position of each column in NZSUB
-    NZSUB: Option<Vec<i32>>,      // Row index of each coeff. in each column
-    LNZ: Option<Vec<i32>>,        // Position of each coeff. in Aij array
-    link: Option<Vec<i32>>,       // Array used by linear eqn. solver
-    first: Option<Vec<i32>>,      // Array used by linear eqn. solver
+    pub Ncoeffs: i32,    // Number of non-zero matrix coeffs
+    pub Order: Option<Vec<i32>>,      // Node-to-row of re-ordered matrix
+    pub Row: Option<Vec<i32>>,        // Row-to-node of re-ordered matrix
+    pub Ndx: Option<Vec<i32>>,        // Index of link's coeff. in Aij
+    pub XLNZ: Option<Vec<i32>>,       // Start position of each column in NZSUB
+    pub NZSUB: Option<Vec<i32>>,      // Row index of each coeff. in each column
+    pub LNZ: Option<Vec<i32>>,        // Position of each coeff. in Aij array
+    pub link: Option<Vec<i32>>,       // Array used by linear eqn. solver
+    pub first: Option<Vec<i32>>,      // Array used by linear eqn. solver
 }
 
 // Hydraulics solver wrapper
-struct Hydraul {
+pub struct Hydraul {
     
     NodeHead: Option<Vec<f32>>,             // Node hydraulic heads
     NodeDemand: Option<Vec<f32>>,           // Node demand + emitter flows
@@ -641,12 +655,12 @@ struct Hydraul {
     LinkStatus: Option<Vec<StatusType>>,           // Link status
     OldStatus: Option<Vec<StatusType>>,            // Previous link/tank status
     
-    smatrix: Smatrix         // Sparse matrix storage
+    pub smatrix: Smatrix         // Sparse matrix storage
 
 }
 
 // Water quality solver wrapper
-struct Quality {
+pub struct Quality {
 
   Qualflag: i32,              // Water quality analysis flag
   OpenQflag: i32,             // Quality system opened flag
@@ -655,10 +669,8 @@ struct Quality {
   TraceNode: i32,             // Source node for flow tracing
   SortedNodes: Box<i32>,         // Topologically sorted node indexes
 
-
-  ChemName : String,   // Name of chemical
-  ChemUnits : String,  // Units of chemical
-
+  pub ChemName : String,   // Name of chemical
+  pub ChemUnits : String,  // Units of chemical
 
   Ctol: f64,                  // Water quality tolerance
   Diffus: f64,                // Diffusivity (sq ft/sec)
@@ -679,14 +691,7 @@ struct Quality {
   SourceQual: f64,            // External source quality
   NodeQual: Option<Vec<f64>>,             // Reported node quality state
   PipeRateCoeff: Option<Vec<f64>>,        // Pipe reaction rate coeffs.
-  
-  // @FIXME: No idea of what's the best approach to implement it
-  // let us proceed with thread_local
-  // struct Mempool
-  // *SegPool;              // Memory pool for water quality segments
 
-
-  FreeSeg: Option<Box<Sseg>>,               // Pointer to unused segment
   FirstSeg: Option<Box<Box<Sseg>>>,             // First (downstream) segment in each pipe
   LastSeg: Option<Box<Sseg>>,              // Last (upstream) segment in each pipe
   FlowDir: Option<Box<FlowDirection>>,              // Flow direction for each pipe
@@ -695,12 +700,12 @@ struct Quality {
 }
 
 // Pipe entwork wrapper
-struct Network {
+pub struct Network {
     
-    Nnodes: i32,                // Number of network nodes
+    pub Nnodes: i32,                // Number of network nodes
     Ntanks: i32,                // Number of tanks
     Njuncs: i32,                // Number of junction nodes
-    Nlinks: i32,                // Number of network links
+    pub Nlinks: i32,                // Number of network links
     Npipes: i32,                // Number of pipes
     Npumps: i32,                // Number of pumps
     Nvalves: i32,               // Number of valves
@@ -719,21 +724,21 @@ struct Network {
     Control: Option<Vec<Scontrol>>,       // Simple controls array
     Rule: Option<Vec<Srule>>,          // Rule-based controls array
     
-    NodesHashMapTable: HashMap<String, String>,        // Hash table for Node ID names
-    LinkHashTable: HashMap<String, String>,        // Hash table for Link ID names
+    NodesHashMapTable: HashMap<String, String>,        // Hash Map for Node ID names
+    LinkHashTable: HashMap<String, String>,        // Hash Map for Link ID names
     // @FIXME: should make sure that this
-    Adjlist: Option<Vec<Sadjlist>>       // Node adjacency lists
+    pub Adjlist: Option<Box<Padjlist>>       // Node adjacency lists
 }
 
 
-struct Project {
-    network: Network,            // Pipe network wrapper
-    parser: Parser ,             // Input file parser wrapper
+pub struct Project {
+    pub network: Network,            // Pipe network wrapper
+    pub parser: Parser ,             // Input file parser wrapper
     times: Times  ,              // Time step wrapper
     report: Report ,             // Reporting wrapper
     outfile: Outfile,            // Output file wrapper
     rules: Rules  ,              // Rule-based controls wrapper
-    hydraul: Hydraul,            // Hydraulics solver wrapper
+    pub hydraul: Hydraul,            // Hydraulics solver wrapper
     quality: Quality,            // Water quality solver wrapper
 
     Ucf: [f64; FieldType::MAXVAR as usize],            // Unit conversion factors
